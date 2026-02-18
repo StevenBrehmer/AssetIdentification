@@ -1,0 +1,123 @@
+:root {
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  color: #111;
+  background: #f6f7f9;
+}
+
+* { box-sizing: border-box; }
+
+body { margin: 0; }
+
+.container {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  height: 100vh;
+}
+
+.sidebar {
+  background: #fff;
+  border-right: 1px solid #e6e8ee;
+  padding: 16px;
+  overflow: auto;
+}
+
+.main {
+  padding: 16px;
+  overflow: auto;
+}
+
+.h1 {
+  font-size: 18px;
+  margin: 0 0 12px 0;
+  font-weight: 700;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e6e8ee;
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+}
+
+.row { display: flex; gap: 8px; align-items: center; }
+
+.btn {
+  border: 1px solid #d7dbe6;
+  background: #fff;
+  border-radius: 10px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn.primary {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.input {
+  width: 100%;
+  border: 1px solid #d7dbe6;
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: #fff;
+}
+
+.listItem {
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.listItem:hover { background: #f3f4f7; }
+
+.listItem.active {
+  background: #eef1ff;
+  border-color: #dbe1ff;
+}
+
+.small { font-size: 12px; color: #555; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.badge {
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid #d7dbe6;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge.ok { border-color: #bfe6c9; background: #effaf2; }
+.badge.warn { border-color: #ffe4b5; background: #fff7e8; }
+.badge.fail { border-color: #ffb8b8; background: #fff0f0; }
+
+.stepTitle { font-weight: 700; margin-bottom: 6px; }
+.stepDetails {
+  font-size: 12px;
+  color: #333;
+  background: #f7f8fb;
+  border: 1px solid #e6e8ee;
+  border-radius: 10px;
+  padding: 10px;
+  overflow: auto;
+  max-height: 180px;
+}
+
+hr { border: 0; border-top: 1px solid #e6e8ee; margin: 12px 0; }

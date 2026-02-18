@@ -5,3 +5,6 @@ pillow
 exifread
 sqlalchemy
 psycopg2-binary
+pydantic
+celery
+redis
