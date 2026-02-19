@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from .db import SessionLocal
 from .models import Run, Step, Photo
 
-from .vision import detect
+from .detectors import get_detector
 from .overlay import render_overlay
 from .pipeline import PIPELINE_STEPS
 
@@ -111,7 +111,9 @@ def run_pipeline(self, run_id: int):
 
         # Step 4: detection (REAL YOLO)
         _set_step(db, run_id, "asset_detection", "running", {"message": "running YOLO detection"})
-        detections = detect(photo_path)
+        detector = get_detector("yolo_onnx")   # later: pull from run config
+        detections = detector.detect(photo_path)
+
 
         # Save an overlay image we can show in the UI
         overlay_rel = f"uploads/overlays/run_{run_id}.jpg"
