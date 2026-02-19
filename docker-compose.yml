@@ -58,7 +58,7 @@ services:
   web:
     build: ./web
     environment:
-      VITE_API_URL: http://192.168.1.114:8000
+      VITE_API_URL: https://api-assets.brehfamily.com
     depends_on:
       - api
     ports:

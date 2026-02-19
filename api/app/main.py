@@ -21,6 +21,7 @@ from fastapi.responses import FileResponse
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "https://assets.brehfamily.com",
         "http://192.168.1.114:3000",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
@@ -34,8 +35,20 @@ app.add_middleware(
 UPLOAD_DIR = "/app/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-# Create tables on startup (MVP)
-Base.metadata.create_all(bind=engine)
+from sqlalchemy.exc import OperationalError
+import time
+
+@app.on_event("startup")
+def startup_db():
+    # Create tables on startup (MVP) with retry to avoid postgres cold-start race
+    for _ in range(30):
+        try:
+            Base.metadata.create_all(bind=engine)
+            return
+        except OperationalError:
+            time.sleep(1)
+    raise RuntimeError("Database not ready after waiting")
+
 
 def step_to_out(step: Step) -> StepOut:
     try:
@@ -92,7 +105,17 @@ def start_run(photo_id: int, db: Session = Depends(get_db)):
     if not photo:
         raise HTTPException(status_code=404, detail="Photo not found")
 
-    run = Run(photo_id=photo_id, status="queued")
+    run = Run(
+    photo_id=photo_id,
+    status="queued",
+    detector_name="yolo_onnx",
+    detector_params_json=json.dumps({
+        "conf": float(os.getenv("YOLO_CONF", "0.25")),
+        "iou": float(os.getenv("YOLO_IOU", "0.45")),
+        "input_size": 640
+    }),
+)
+
     db.add(run)
     db.commit()
     db.refresh(run)

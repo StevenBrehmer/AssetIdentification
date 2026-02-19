@@ -1,6 +1,24 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_BASE = (() => {
+  const env = import.meta.env.VITE_API_URL;
+  if (env) return env;
+
+  const host = window.location.hostname;
+
+  // Cloudflare tunnel UI → Cloudflare tunnel API
+  if (host === "assets.brehfamily.com") return "https://api-assets.brehfamily.com";
+
+  // Local dev
+  if (host === "localhost" || host === "127.0.0.1") return "http://localhost:8000";
+
+  // LAN access by IP
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) return `http://${host}:8000`;
+
+  return "http://192.168.1.114:8000";
+})();
+
+
 
 function statusBadge(status) {
   if (status === "complete" || status === "done") return "ok";
