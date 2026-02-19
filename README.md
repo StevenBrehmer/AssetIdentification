@@ -195,6 +195,6 @@ API Docs: http://localhost:8000/docs
 
 ------------------------------------------------------------------------
 
-# 👨‍🔬 Author
+# 👨‍🔬 Author: Steven Brehmer
 
 Designed as a modular infrastructure ML experimentation platform.
