@@ -7,13 +7,16 @@ from sqlalchemy.orm import Session
 
 from .db import engine, get_db
 from .models import Photo, Run, Step, Base
-from .tasks import PIPELINE_STEPS
+from .pipeline import PIPELINE_STEPS
 from .worker import celery_app
 from .schemas import PhotoOut, RunOut, StepOut
 
 app = FastAPI(title="Asset Identification API")
 
 from fastapi.middleware.cors import CORSMiddleware
+
+from fastapi.responses import FileResponse
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -204,4 +207,25 @@ def list_runs(db: Session = Depends(get_db), limit: int = 25):
             steps=[step_to_out(s) for s in steps],
         ))
     return out
+
+@app.get("/runs/{run_id}/overlay")
+def get_run_overlay(run_id: int, db: Session = Depends(get_db)):
+    step = db.query(Step).filter(Step.run_id == run_id, Step.name == "asset_detection").first()
+    if not step:
+        raise HTTPException(status_code=404, detail="asset_detection step not found")
+
+    try:
+        details = json.loads(step.details_json or "{}")
+    except Exception:
+        details = {}
+
+    rel = details.get("overlay_path")
+    if not rel:
+        raise HTTPException(status_code=404, detail="overlay not available yet")
+
+    abs_path = os.path.join("/app", rel)
+    if not os.path.exists(abs_path):
+        raise HTTPException(status_code=404, detail="overlay file missing")
+
+    return FileResponse(abs_path, media_type="image/jpeg")
 

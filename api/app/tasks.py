@@ -7,14 +7,10 @@ from sqlalchemy.orm import Session
 from .db import SessionLocal
 from .models import Run, Step, Photo
 
-PIPELINE_STEPS = [
-    "ingest",
-    "extract_exif",
-    "utility_gate",
-    "asset_detection",
-    "condition_assessment",
-    "summary",
-]
+from .vision import detect
+from .overlay import render_overlay
+from .pipeline import PIPELINE_STEPS
+
 
 def _db() -> Session:
     return SessionLocal()
@@ -49,11 +45,11 @@ def _extract_exif(file_path: str) -> dict:
     return exif_data
 
 def _fake_utility_gate() -> dict:
-    # placeholder — later we swap in a real classifier
+    # placeholder ï¿½ later we swap in a real classifier
     return {"is_utility_infrastructure": True, "confidence": 0.73, "notes": "stub result"}
 
 def _fake_asset_detection() -> dict:
-    # placeholder — later we swap in YOLO output
+    # placeholder ï¿½ later we swap in YOLO output
     return {
         "detections": [
             {"label": "pole", "confidence": 0.81, "bbox": [0.12, 0.08, 0.35, 0.92]},
@@ -113,10 +109,21 @@ def run_pipeline(self, run_id: int):
         gate = _fake_utility_gate()
         _set_step(db, run_id, "utility_gate", "complete", gate)
 
-        # Step 4: detection
-        _set_step(db, run_id, "asset_detection", "running", {"message": "detecting assets (stub)"})
-        time.sleep(1.0)
-        det = _fake_asset_detection()
+        # Step 4: detection (REAL YOLO)
+        _set_step(db, run_id, "asset_detection", "running", {"message": "running YOLO detection"})
+        detections = detect(photo_path)
+
+        # Save an overlay image we can show in the UI
+        overlay_rel = f"uploads/overlays/run_{run_id}.jpg"
+        overlay_abs = os.path.join("/app", overlay_rel)
+        render_overlay(photo_path, detections, overlay_abs)
+
+        det = {
+            "model": os.getenv("YOLO_MODEL", "yolov8n.pt"),
+            "count": len(detections),
+            "detections": detections[:200],  # avoid huge payloads
+            "overlay_path": overlay_rel
+        }
         _set_step(db, run_id, "asset_detection", "complete", det)
 
         # Step 5: condition

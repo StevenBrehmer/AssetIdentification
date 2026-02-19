@@ -35,7 +35,8 @@ services:
       DATABASE_URL: postgresql://utilml:utilml_pass@postgres:5432/utilml
       REDIS_URL: redis://redis:6379/0
     volumes:
-      - api_uploads:/app/uploads
+        - api_uploads:/app/uploads
+        - ./models:/app/models:ro
     depends_on:
       - postgres
       - redis
@@ -49,7 +50,8 @@ services:
       DATABASE_URL: postgresql://utilml:utilml_pass@postgres:5432/utilml
       REDIS_URL: redis://redis:6379/0
     volumes:
-      - api_uploads:/app/uploads
+        - api_uploads:/app/uploads
+        - ./models:/app/models:ro
     depends_on:
       - postgres
       - redis

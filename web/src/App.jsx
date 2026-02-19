@@ -266,7 +266,7 @@ export default function App() {
               <div style={{ height: 8 }} />
 
               {runs.length === 0 ? (
-                <div className="small">No runs yet. Click “Start Run”.</div>
+                <div className="small">No runs yet. Click ï¿½Start Runï¿½.</div>
               ) : (
                 <div className="row" style={{ flexWrap: "wrap" }}>
                   {runs.map(r => (
@@ -323,8 +323,27 @@ export default function App() {
                         <div className="stepTitle">{step.name}</div>
                         <div className={`badge ${statusBadge(step.status)}`}>{step.status}</div>
                       </div>
-                      <div className="small">Updated: {step.updated_at ? new Date(step.updated_at).toLocaleString() : "—"}</div>
+
+                      <div className="small">
+                        Updated: {step.updated_at ? new Date(step.updated_at).toLocaleString() : "â€”"}
+                      </div>
+
                       <div style={{ height: 8 }} />
+
+                      {step.name === "asset_detection" && step.status === "complete" ? (
+                        <div className="card" style={{ marginBottom: 10 }}>
+                          <div style={{ fontWeight: 800, marginBottom: 8 }}>Overlay</div>
+                          <img
+                            alt="Detection overlay"
+                            style={{ width: "100%", borderRadius: 12, border: "1px solid #e6e8ee" }}
+                            src={`${API_BASE}/runs/${run.id}/overlay?ts=${Date.now()}`}
+                          />
+                          <div className="small" style={{ marginTop: 6 }}>
+                            (If this doesnâ€™t refresh, hard refresh the page.)
+                          </div>
+                        </div>
+                      ) : null}
+
                       <div className="stepDetails">
                         <pre style={{ margin: 0 }}>{prettyJson(step.details)}</pre>
                       </div>

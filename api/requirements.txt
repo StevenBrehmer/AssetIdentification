@@ -8,3 +8,5 @@ psycopg2-binary
 pydantic
 celery
 redis
+onnxruntime
+numpy
