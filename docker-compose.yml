@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   postgres:
     image: postgres:16
@@ -34,6 +32,29 @@ services:
     environment:
       DATABASE_URL: postgresql://utilml:utilml_pass@postgres:5432/utilml
       REDIS_URL: redis://redis:6379/0
+
+      DETECTORS: yolo_onnx,groundingdino
+
+      GROUNDINGDINO_CONFIG: /app/models/GroundingDINO_SwinT_OGC.py
+      GROUNDINGDINO_WEIGHTS: /app/models/groundingdino_swint_ogc.pth
+      GROUNDINGDINO_PROMPT: >
+        utility pole. wooden pole. power pole.
+        crossarm. wooden crossarm. fiberglass crossarm.
+        distribution transformer. pole mounted transformer. electrical transformer.
+        fuse cutout. utility fuse.
+        insulator. power line insulator.
+        jumper wire. electrical jumper.
+        lightning arrester. surge arrester.
+        power cable. overhead wire.
+        telecom cable. communication cable.
+        street light.
+        disconnect switch.
+        recloser. pole mounted recloser.
+        control cabinet. electrical cabinet.
+      GROUNDINGDINO_BOX_THRESHOLD: "0.31"
+      GROUNDINGDINO_TEXT_THRESHOLD: "0.25"
+      GROUNDINGDINO_DEVICE: cpu
+
     volumes:
         - api_uploads:/app/uploads
         - ./models:/app/models:ro
@@ -49,6 +70,29 @@ services:
     environment:
       DATABASE_URL: postgresql://utilml:utilml_pass@postgres:5432/utilml
       REDIS_URL: redis://redis:6379/0
+
+      DETECTORS: yolo_onnx,groundingdino
+
+      GROUNDINGDINO_CONFIG: /app/models/GroundingDINO_SwinT_OGC.py
+      GROUNDINGDINO_WEIGHTS: /app/models/groundingdino_swint_ogc.pth
+      GROUNDINGDINO_PROMPT: >
+        utility pole. wooden pole. power pole.
+        crossarm. wooden crossarm. fiberglass crossarm.
+        distribution transformer. pole mounted transformer. electrical transformer.
+        fuse cutout. utility fuse.
+        insulator. power line insulator.
+        jumper wire. electrical jumper.
+        lightning arrester. surge arrester.
+        power cable. overhead wire.
+        telecom cable. communication cable.
+        street light.
+        disconnect switch.
+        recloser. pole mounted recloser.
+        control cabinet. electrical cabinet.
+      GROUNDINGDINO_BOX_THRESHOLD: "0.31"
+      GROUNDINGDINO_TEXT_THRESHOLD: "0.25"
+      GROUNDINGDINO_DEVICE: cpu
+
     volumes:
         - api_uploads:/app/uploads
         - ./models:/app/models:ro

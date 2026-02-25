@@ -10,3 +10,14 @@ celery
 redis
 onnxruntime
 numpy
+
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
+torchvision
+opencv-python-headless
+matplotlib
+timm
+transformers==4.56.2
+addict
+pyyaml
+yapf

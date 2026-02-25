@@ -98,6 +98,13 @@ def get_photo(photo_id: int, db: Session = Depends(get_db)):
     if not photo:
         raise HTTPException(status_code=404, detail="Photo not found")
     return photo
+@app.get("/photos/{photo_id}/raw")
+def get_raw_photo(photo_id: int, db: Session = Depends(get_db)):
+    photo = db.query(Photo).filter(Photo.id == photo_id).one()
+    abs_path = os.path.join("/app", photo.stored_path)
+    if not os.path.exists(abs_path):
+        raise HTTPException(404, "photo not found")
+    return FileResponse(abs_path)
 
 @app.post("/photos/{photo_id}/run", response_model=RunOut)
 def start_run(photo_id: int, db: Session = Depends(get_db)):
@@ -232,23 +239,16 @@ def list_runs(db: Session = Depends(get_db), limit: int = 25):
     return out
 
 @app.get("/runs/{run_id}/overlay")
-def get_run_overlay(run_id: int, db: Session = Depends(get_db)):
-    step = db.query(Step).filter(Step.run_id == run_id, Step.name == "asset_detection").first()
-    if not step:
-        raise HTTPException(status_code=404, detail="asset_detection step not found")
+def get_overlay(run_id: int, detector: str = "yolo_onnx"):
+    det = (detector or "yolo_onnx").strip().lower()
 
-    try:
-        details = json.loads(step.details_json or "{}")
-    except Exception:
-        details = {}
+    new_path = os.path.join("/app/uploads/overlays", f"run_{run_id}", f"{det}.jpg")
+    if os.path.exists(new_path):
+        return FileResponse(new_path, media_type="image/jpeg")
 
-    rel = details.get("overlay_path")
-    if not rel:
-        raise HTTPException(status_code=404, detail="overlay not available yet")
+    legacy_path = os.path.join("/app/uploads/overlays", f"run_{run_id}.jpg")
+    if os.path.exists(legacy_path):
+        return FileResponse(legacy_path, media_type="image/jpeg")
 
-    abs_path = os.path.join("/app", rel)
-    if not os.path.exists(abs_path):
-        raise HTTPException(status_code=404, detail="overlay file missing")
-
-    return FileResponse(abs_path, media_type="image/jpeg")
+    raise HTTPException(404, "overlay not found")
 

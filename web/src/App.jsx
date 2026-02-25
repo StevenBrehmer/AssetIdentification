@@ -18,8 +18,6 @@ const API_BASE = (() => {
   return "http://192.168.1.114:8000";
 })();
 
-
-
 function statusBadge(status) {
   if (status === "complete" || status === "done") return "ok";
   if (status === "failed") return "fail";
@@ -65,6 +63,10 @@ export default function App() {
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+
+  // NEW: which image to show for the run
+  // "raw" requires backend endpoint: GET /photos/{photo_id}/raw
+  const [overlayMode, setOverlayMode] = useState("groundingdino"); // "raw" | "yolo_onnx" | "groundingdino"
 
   const fileRef = useRef(null);
   const pollRef = useRef(null);
@@ -174,6 +176,9 @@ export default function App() {
       // createdRun has run id; select it
       await refreshPhotoAndRuns(selectedPhotoId);
       setSelectedRunId(createdRun.id);
+
+      // NEW: default view to DINO for demo
+      setOverlayMode("groundingdino");
     } catch (e) {
       setError(String(e.message || e));
     } finally {
@@ -211,20 +216,28 @@ export default function App() {
         <div className="card">
           <div className="row" style={{ justifyContent: "space-between" }}>
             <div style={{ fontWeight: 700 }}>Upload</div>
-            <button className="btn" onClick={refreshPhotos} disabled={busy}>Refresh</button>
+            <button className="btn" onClick={refreshPhotos} disabled={busy}>
+              Refresh
+            </button>
           </div>
           <div style={{ height: 8 }} />
           <input ref={fileRef} className="input" type="file" accept="image/*" />
           <div style={{ height: 8 }} />
-          <button className="btn primary" onClick={onUpload} disabled={busy}>Upload Photo</button>
+          <button className="btn primary" onClick={onUpload} disabled={busy}>
+            Upload Photo
+          </button>
           <div style={{ height: 8 }} />
-          <div className="small">API: <span className="mono">{API_BASE}</span></div>
+          <div className="small">
+            API: <span className="mono">{API_BASE}</span>
+          </div>
         </div>
 
         {error ? (
           <div className="card" style={{ borderColor: "#ffb8b8", background: "#fff0f0" }}>
             <div style={{ fontWeight: 800 }}>Error</div>
-            <div className="small mono" style={{ whiteSpace: "pre-wrap" }}>{error}</div>
+            <div className="small mono" style={{ whiteSpace: "pre-wrap" }}>
+              {error}
+            </div>
           </div>
         ) : null}
 
@@ -244,7 +257,9 @@ export default function App() {
                 onClick={() => setSelectedPhotoId(p.id)}
               >
                 <div style={{ fontWeight: 700 }}>{p.filename}</div>
-                <div className="small">ID: <span className="mono">{p.id}</span></div>
+                <div className="small">
+                  ID: <span className="mono">{p.id}</span>
+                </div>
                 <div className="small">{new Date(p.uploaded_at).toLocaleString()}</div>
               </div>
             ))
@@ -263,9 +278,15 @@ export default function App() {
             <div className="card">
               <div className="row" style={{ justifyContent: "space-between" }}>
                 <div>
-                  <div className="h1" style={{ marginBottom: 6 }}>{selectedPhoto.filename}</div>
-                  <div className="small">Photo ID: <span className="mono">{selectedPhoto.id}</span></div>
-                  <div className="small">Stored: <span className="mono">{selectedPhoto.stored_path}</span></div>
+                  <div className="h1" style={{ marginBottom: 6 }}>
+                    {selectedPhoto.filename}
+                  </div>
+                  <div className="small">
+                    Photo ID: <span className="mono">{selectedPhoto.id}</span>
+                  </div>
+                  <div className="small">
+                    Stored: <span className="mono">{selectedPhoto.stored_path}</span>
+                  </div>
                 </div>
                 <div className="row">
                   <button className="btn primary" onClick={onStartRun} disabled={busy}>
@@ -284,7 +305,7 @@ export default function App() {
               <div style={{ height: 8 }} />
 
               {runs.length === 0 ? (
-                <div className="small">No runs yet. Click �Start Run�.</div>
+                <div className="small">No runs yet. Click “Start Run”.</div>
               ) : (
                 <div className="row" style={{ flexWrap: "wrap" }}>
                   {runs.map(r => (
@@ -317,8 +338,12 @@ export default function App() {
                     <div className="small">Created: {new Date(run.created_at).toLocaleString()}</div>
                     <div style={{ height: 10 }} />
                     <div className="row">
-                      <button className="btn" onClick={() => submitFeedback(true)} disabled={busy}>? Correct</button>
-                      <button className="btn" onClick={() => submitFeedback(false)} disabled={busy}>? Incorrect</button>
+                      <button className="btn" onClick={() => submitFeedback(true)} disabled={busy}>
+                        ✅ Correct
+                      </button>
+                      <button className="btn" onClick={() => submitFeedback(false)} disabled={busy}>
+                        ❌ Incorrect
+                      </button>
                     </div>
                     <div className="small" style={{ marginTop: 8 }}>
                       (Next iteration: feedback dialog + reason checkboxes.)
@@ -350,14 +375,42 @@ export default function App() {
 
                       {step.name === "asset_detection" && step.status === "complete" ? (
                         <div className="card" style={{ marginBottom: 10 }}>
-                          <div style={{ fontWeight: 800, marginBottom: 8 }}>Overlay</div>
+                          <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
+                            <div style={{ fontWeight: 800 }}>Image</div>
+
+                            <div className="row" style={{ gap: 8, alignItems: "center" }}>
+                              <div className="small">View:</div>
+                              <select
+                                className="input"
+                                style={{ width: 180 }}
+                                value={overlayMode}
+                                onChange={(e) => setOverlayMode(e.target.value)}
+                              >
+                                <option value="raw">Raw</option>
+                                <option value="yolo_onnx">YOLO</option>
+                                <option value="groundingdino">GroundingDINO</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div style={{ height: 10 }} />
+
                           <img
-                            alt="Detection overlay"
+                            alt="Run view"
                             style={{ width: "100%", borderRadius: 12, border: "1px solid #e6e8ee" }}
-                            src={`${API_BASE}/runs/${run.id}/overlay?ts=${Date.now()}`}
+                            src={
+                              overlayMode === "raw"
+                                ? `${API_BASE}/photos/${run.photo_id}/raw?ts=${Date.now()}`
+                                : `${API_BASE}/runs/${run.id}/overlay?detector=${overlayMode}&ts=${Date.now()}`
+                            }
+                            onError={() => {
+                              // If overlay isn't present yet (or API doesn't support it), fall back to raw
+                              if (overlayMode !== "raw") setOverlayMode("raw");
+                            }}
                           />
+
                           <div className="small" style={{ marginTop: 6 }}>
-                            (If this doesn’t refresh, hard refresh the page.)
+                            Tip: If YOLO shows nothing, switch to GroundingDINO or Raw.
                           </div>
                         </div>
                       ) : null}
